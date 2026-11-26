@@ -87,9 +87,14 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 @media (max-aspect-ratio:1/1){#panel{inset:0 0 50% 0}}
 #panel.full{inset:0}
 /* bei offenem Panel rueckt das Standbild auf die andere Haelfte */
-.split #idle{inset:0 0 0 50%}
+.split #idle{inset:0 0 0 50%;width:auto;height:auto}
 .split #extras{left:50%}
-@media (max-aspect-ratio:1/1){.split #idle{inset:50% 0 0 0}.split #extras{left:0}}
+.split #idle h1{white-space:normal;font-size:clamp(24px,6.6vmin,120px)}
+.split #idle p{font-size:clamp(14px,2.3vmin,46px)}
+.split #idle .lead{gap:clamp(12px,3vmin,60px)}
+.split .mark{height:clamp(80px,26vmin,480px)}
+.split .press{font-size:clamp(15px,2.4vmin,48px)}
+@media (max-aspect-ratio:1/1){.split #idle{inset:50% 0 0 0;width:auto;height:auto}.split #extras{left:0}}
 #panel header{display:flex;align-items:center;gap:.5em;padding:.45em .7em;background:#0a3350;border-bottom:1px solid rgba(255,255,255,.12)}
 #panel header h2{flex:1;margin:0;font:700 clamp(15px,2vmin,34px) var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #panel header button{border:0;border-radius:999px;padding:.4em 1em;font:600 clamp(13px,1.7vmin,30px) var(--text);background:rgba(255,255,255,.16);color:var(--foam);cursor:pointer}
