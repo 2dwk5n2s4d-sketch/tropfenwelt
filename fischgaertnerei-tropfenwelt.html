@@ -84,7 +84,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 #extras button:active{transform:translateY(.3vmin)}
 #extras svg{height:1.2em;width:auto;fill:currentColor}
 #panel{position:fixed;z-index:6;inset:0 50% 0 0;display:flex;flex-direction:column;background:#06273d;box-shadow:0 0 4vmin rgba(0,0,0,.55)}
-@media (max-aspect-ratio:1/1){#panel{inset:0 0 50% 0}}
+
 #panel.full{inset:0}
 /* bei offenem Panel rueckt das Standbild auf die andere Haelfte */
 .split #idle{inset:0 0 0 50%;width:auto;height:auto}
@@ -94,7 +94,8 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 .split #idle .lead{gap:clamp(12px,3vmin,60px)}
 .split .mark{height:clamp(80px,26vmin,480px)}
 .split .press{font-size:clamp(15px,2.4vmin,48px)}
-@media (max-aspect-ratio:1/1){.split #idle{inset:50% 0 0 0;width:auto;height:auto}.split #extras{left:0}}
+.split #intro,.split #stage,.split #load{inset:0 0 0 50%;width:auto;height:auto}
+.split #end{left:75%}
 #panel header{display:flex;align-items:center;gap:.5em;padding:.45em .7em;background:#0a3350;border-bottom:1px solid rgba(255,255,255,.12)}
 #panel header h2{flex:1;margin:0;font:700 clamp(15px,2vmin,34px) var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #panel header button{border:0;border-radius:999px;padding:.4em 1em;font:600 clamp(13px,1.7vmin,30px) var(--text);background:rgba(255,255,255,.16);color:var(--foam);cursor:pointer}
@@ -174,14 +175,20 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 if(window.KIOSK_LOGO){$('logo').src=window.KIOSK_LOGO;$('logo').hidden=false;$('mark').hidden=true;$('idle').classList.add('haslogo');}
 let GAME=null,state='idle',timer=0,ready=0,want=0,loadT=0;
 const NAMES=['allein','zu zweit','zu dritt','zu viert'];
-function show(s){state=s;if($('extras'))$('extras').hidden=s!=='idle';if(s!=='idle'&&$('panel')&&!$('panel').hidden)closePanel();$('idle').hidden=s!=='idle';$('intro').hidden=s!=='intro';$('stage').hidden=s!=='play';$('end').hidden=s!=='play';$('confirm').hidden=true;if(s!=='play')$('load').hidden=true;arm();}
+function show(s){state=s;if($('extras'))$('extras').hidden=s!=='idle';$('idle').hidden=s!=='idle';$('intro').hidden=s!=='intro';$('stage').hidden=s!=='play';$('end').hidden=s!=='play';$('confirm').hidden=true;if(s!=='play')$('load').hidden=true;arm();}
 function arm(){clearTimeout(timer);if(state==='intro')timer=setTimeout(toIdle,PICK_S*1000);else if(state==='play')timer=setTimeout(toIdle,IDLE_S*1000);}
-function toIdle(){clearTimeout(loadT);const st=$('stage');[...st.children].forEach(f=>{try{f.srcdoc='';}catch(e){}f.remove();});show('idle');}
-function maxPlayers(){return Math.max(1,Math.min(4,Math.floor(innerWidth/300)));}
+function toIdle(){clearTimeout(loadT);if($('panel')&&!$('panel').hidden)closePanel();const st=$('stage');[...st.children].forEach(f=>{try{f.srcdoc='';}catch(e){}f.remove();});show('idle');}
+function geteilt(){return document.documentElement.classList.contains('split');}
+function maxPlayers(){const halb=geteilt(),breite=halb?innerWidth/2:innerWidth;
+  return Math.max(1,Math.min(halb?2:4,Math.floor(breite/300)));}
 function buildCount(){const n=maxPlayers(),c=$('count');c.textContent='';
   $('howmany').textContent=n>1?'Wie viele möchten spielen? Tippe auf eine Zahl, dann geht es los.':'Tippe auf „Los geht’s“, dann plumpst dein Tropfen ins Becken.';
   for(let i=1;i<=n;i++){const b=document.createElement('button');b.id='p'+i;b.innerHTML=n>1?i+'<small>'+NAMES[i-1]+'</small>':'<small style="font-size:.5em;padding:.3em .2em">Los geht’s</small>';b.setAttribute('aria-label',n>1?i+' Spieler, '+NAMES[i-1]:'Los geht’s');b.onclick=()=>start(i);c.appendChild(b);}
-  const f=$('fit');f.hidden=n>=4;f.textContent=n>1?'Auf diesem Bildschirm ist Platz für '+n+' nebeneinander. Am großen Display sind es bis zu 4.':'Mehrere Spieler: am großen Display oder im Querformat.';}
+  const f=$('fit');f.hidden=n>=4;f.textContent=geteilt()
+    ?(n>1?'Neben dem geöffneten Fenster ist Platz für '+n+'. Fenster schließen, dann sind bis zu 4 möglich.'
+         :'Neben dem geöffneten Fenster spielt einer. Fenster schließen, dann sind mehrere möglich.')
+    :(n>1?'Auf diesem Bildschirm ist Platz für '+n+' nebeneinander. Am großen Display sind es bis zu 4.'
+         :'Mehrere Spieler: am großen Display oder im Querformat.');}
 function gameDoc(n,i){if(!GAME)GAME=new TextDecoder().decode(Uint8Array.from(atob(GAME_B64),c=>c.charCodeAt(0)));let h=GAME;
   const three=$('lib-three-src').textContent,orbit=$('lib-orbit-src').textContent;
   if(three.length>1000&&orbit.length>20){                                   // Offline-Fassung: Bibliotheken aus dieser Datei, keine Netz-Schriften
@@ -243,7 +250,7 @@ function openPanel(kind){panelKind=kind;codeOk=false;
   if(kind==='shop')$('pbody').innerHTML='<iframe id="shopfr" title="Fischgärtnerei" src="https://www.fischgaertnerei.at/"></iframe>';
   else camStart();
   arm();}
-function closePanel(){clearInterval(camTimer);document.documentElement.classList.remove('split');$('panel').hidden=true;$('pbody').textContent='';panelKind=null;$('code').hidden=true;arm();}
+function closePanel(){clearInterval(camTimer);document.documentElement.classList.remove('split');if($('count'))buildCount();$('panel').hidden=true;$('pbody').textContent='';panelKind=null;$('code').hidden=true;arm();}
 function askCode(dann){codeThen=dann;codeBuf='';$('cdots').textContent='';$('code').hidden=false;}
 function codeKey(z){if(z==='x'){$('code').hidden=true;return;}
   codeBuf=(codeBuf+z).slice(-8);$('cdots').textContent='•'.repeat(codeBuf.length);
