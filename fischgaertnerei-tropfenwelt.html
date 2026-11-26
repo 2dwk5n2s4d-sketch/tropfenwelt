@@ -78,6 +78,38 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 #confirm .row{display:flex;flex-wrap:wrap;gap:clamp(10px,1.6vmin,28px);justify-content:center}
 #confirm button{border:0;border-radius:999px;padding:.6em 1.3em;font:700 clamp(18px,2.6vmin,50px) var(--text);cursor:pointer;background:var(--ink);color:#fff}
 #confirm button.go{background:var(--drop);color:var(--ink)}
+/* Hofladen und Kamera: oeffnen auf der halben Flaeche, Vollbild nur mit Code */
+#extras{position:fixed;z-index:3;left:0;right:0;bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:clamp(10px,2vmin,30px);justify-content:center;flex-wrap:wrap;padding-inline:max(16px,env(safe-area-inset-left,0px))}
+#extras button{display:inline-flex;align-items:center;gap:.5em;border:0;border-radius:999px;padding:.55em 1.3em;font:600 clamp(14px,2vmin,34px) var(--text);background:rgba(255,255,255,.16);color:var(--foam);cursor:pointer}
+#extras button:active{transform:translateY(.3vmin)}
+#extras svg{height:1.2em;width:auto;fill:currentColor}
+#panel{position:fixed;z-index:6;inset:0 50% 0 0;display:flex;flex-direction:column;background:#06273d;box-shadow:0 0 4vmin rgba(0,0,0,.55)}
+@media (max-aspect-ratio:1/1){#panel{inset:0 0 50% 0}}
+#panel.full{inset:0}
+/* bei offenem Panel rueckt das Standbild auf die andere Haelfte */
+.split #idle{inset:0 0 0 50%}
+.split #extras{left:50%}
+@media (max-aspect-ratio:1/1){.split #idle{inset:50% 0 0 0}.split #extras{left:0}}
+#panel header{display:flex;align-items:center;gap:.5em;padding:.45em .7em;background:#0a3350;border-bottom:1px solid rgba(255,255,255,.12)}
+#panel header h2{flex:1;margin:0;font:700 clamp(15px,2vmin,34px) var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#panel header button{border:0;border-radius:999px;padding:.4em 1em;font:600 clamp(13px,1.7vmin,30px) var(--text);background:rgba(255,255,255,.16);color:var(--foam);cursor:pointer}
+#panel header button.x{background:var(--drop);color:var(--ink)}
+#panel .body{flex:1;position:relative;background:#000;overflow:hidden}
+#panel iframe{width:100%;height:100%;border:0;background:#fff}
+#camimg{width:100%;height:100%;object-fit:contain;background:#000}
+#camnote{position:absolute;inset:auto 0 0 0;padding:.6em;text-align:center;font-size:clamp(13px,1.7vmin,30px);background:rgba(6,39,61,.85);color:#d6edf7}
+#camctl{position:absolute;right:clamp(8px,1.4vmin,24px);bottom:clamp(8px,1.4vmin,24px);display:grid;grid-template-columns:repeat(3,auto);gap:clamp(5px,.8vmin,14px);align-items:center;justify-items:center}
+#camctl button{width:clamp(44px,7vmin,110px);height:clamp(44px,7vmin,110px);border:0;border-radius:50%;background:rgba(10,42,63,.72);color:#fff;font:700 clamp(17px,2.6vmin,46px)/1 var(--text);cursor:pointer;touch-action:none}
+#camctl button:active{background:var(--drop);color:var(--ink)}
+#camctl .z{border-radius:clamp(10px,1.4vmin,22px)}
+#code{position:fixed;z-index:8;inset:0;display:grid;place-items:center;background:rgba(3,20,32,.82)}
+#code .box{background:var(--foam);color:var(--ink);border-radius:clamp(14px,2vmin,30px);padding:clamp(16px,2.6vmin,46px);text-align:center}
+#code h2{margin:0 0 .4em;font:700 clamp(17px,2.4vmin,44px) var(--text)}
+#code .dots{font:700 clamp(22px,3vmin,56px)/1 var(--text);letter-spacing:.3em;min-height:1.2em;margin-bottom:.4em}
+#code .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(6px,1vmin,16px)}
+#code .pad button{border:0;border-radius:clamp(8px,1.2vmin,18px);padding:.5em 0;min-width:clamp(56px,8vmin,130px);font:700 clamp(18px,2.6vmin,46px) var(--text);background:#d8e8f0;color:var(--ink);cursor:pointer}
+#code .pad button:active{background:var(--drop)}
+#code .pad button.wide{grid-column:span 3;background:none;text-decoration:underline;font-size:clamp(14px,1.8vmin,32px)}
 @media (prefers-reduced-motion:reduce){.press,#load i,.mark svg,.mark i{animation:none}}
 </style>
 </head>
@@ -112,6 +144,18 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
     <button class="back" id="back">Zurück</button>
   </div>
 </div>
+<div id="extras" hidden>
+  <button id="bshop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h-2l-1 2H2v2h2l3 8h10l3-8h2V6h-2l-1-2h-2l-1 2H8L7 4Zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>Hofladen &amp; Bestellen</button>
+  <button id="bcam" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>Kamera Aquakultur</button>
+</div>
+<div id="panel" hidden>
+  <header><h2 id="ptitle"></h2><button type="button" id="pfull">Vollbild</button><button type="button" class="x" id="pclose">Schließen</button></header>
+  <div class="body" id="pbody"></div>
+</div>
+<div id="code" hidden><div class="box">
+  <h2>Code eingeben</h2><div class="dots" id="cdots"></div>
+  <div class="pad" id="cpad"></div>
+</div></div>
 <div id="stage" hidden></div>
 <div id="load" hidden><div><i></i>Das Becken wird gefüllt …</div></div>
 <button id="end" hidden>Ende</button>
@@ -125,7 +169,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 if(window.KIOSK_LOGO){$('logo').src=window.KIOSK_LOGO;$('logo').hidden=false;$('mark').hidden=true;$('idle').classList.add('haslogo');}
 let GAME=null,state='idle',timer=0,ready=0,want=0,loadT=0;
 const NAMES=['allein','zu zweit','zu dritt','zu viert'];
-function show(s){state=s;$('idle').hidden=s!=='idle';$('intro').hidden=s!=='intro';$('stage').hidden=s!=='play';$('end').hidden=s!=='play';$('confirm').hidden=true;if(s!=='play')$('load').hidden=true;arm();}
+function show(s){state=s;if($('extras'))$('extras').hidden=s!=='idle';if(s!=='idle'&&$('panel')&&!$('panel').hidden)closePanel();$('idle').hidden=s!=='idle';$('intro').hidden=s!=='intro';$('stage').hidden=s!=='play';$('end').hidden=s!=='play';$('confirm').hidden=true;if(s!=='play')$('load').hidden=true;arm();}
 function arm(){clearTimeout(timer);if(state==='intro')timer=setTimeout(toIdle,PICK_S*1000);else if(state==='play')timer=setTimeout(toIdle,IDLE_S*1000);}
 function toIdle(){clearTimeout(loadT);const st=$('stage');[...st.children].forEach(f=>{try{f.srcdoc='';}catch(e){}f.remove();});show('idle');}
 function maxPlayers(){return Math.max(1,Math.min(4,Math.floor(innerWidth/300)));}
@@ -156,6 +200,58 @@ addEventListener('keydown',e=>{if(state!=='intro')return;if(e.key==='Escape')sho
 addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state!=='idle')try{if(navigator.wakeLock)navigator.wakeLock.request('screen').catch(()=>{});}catch(e){}});
 show('idle');
+// ---- Hofladen und Kamera -------------------------------------------------
+const CAM='camera.aquakultur_zoom_fluent',PTZ='button.aquakultur_zoom_ptz_',ZOOM='number.aquakultur_zoom_zoom',CODE='6693';
+let panelKind=null,camTimer=0,codeOk=false,codeBuf='',codeThen=null;
+function haTokens(){try{return JSON.parse(localStorage.getItem('hassTokens')||'null');}catch(e){return null;}}
+async function haToken(){const t=haTokens();if(!t)return null;
+  if(t.expires&&t.expires>Date.now()+30000)return t.access_token;
+  try{const r=await fetch('/auth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body:'grant_type=refresh_token&refresh_token='+encodeURIComponent(t.refresh_token)+'&client_id='+encodeURIComponent(t.clientId||location.origin+'/')});
+    if(!r.ok)return null;const d=await r.json();t.access_token=d.access_token;t.expires=Date.now()+d.expires_in*1000;
+    localStorage.setItem('hassTokens',JSON.stringify(t));return t.access_token;}catch(e){return null;}}
+async function ha(pfad,data){const tk=await haToken();if(!tk)return null;
+  try{const r=await fetch(pfad,{method:data?'POST':'GET',headers:{Authorization:'Bearer '+tk,'Content-Type':'application/json'},body:data?JSON.stringify(data):undefined});
+    return r.ok?await r.json():null;}catch(e){return null;}}
+function camCtl(){const b=(t,id,cls)=>'<button type="button" id="'+id+'" class="'+(cls||'')+'">'+t+'</button>';
+  return '<div id="camctl">'+'<span></span>'+b('▲','cup')+'<span></span>'
+    +b('◀','cleft')+b('＋','czin','z')+b('▶','cright')
+    +'<span></span>'+b('▼','cdown')+b('－','czout','z')+'</div>';}
+function camStart(){const body=$('pbody');
+  body.innerHTML='<img id="camimg" alt="Kamerabild Aquakultur">'+camCtl()+'<div id="camnote" hidden></div>';
+  const halt=()=>ha('/api/services/button/press',{entity_id:PTZ+'stop'});
+  const dreh=(id,r)=>{const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();ha('/api/services/button/press',{entity_id:PTZ+r});});
+    ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,halt));};
+  dreh('cup','up');dreh('cdown','down');dreh('cleft','left');dreh('cright','right');
+  const zoom=async d=>{const st=await ha('/api/states/'+ZOOM);if(!st)return;
+    const max=st.attributes.max||41,v=Math.max(0,Math.min(max,Math.round(parseFloat(st.state)||0)+d));
+    ha('/api/services/number/set_value',{entity_id:ZOOM,value:v});};
+  $('czin').onclick=()=>zoom(4);$('czout').onclick=()=>zoom(-4);
+  const bild=async()=>{const st=await ha('/api/states/'+CAM);
+    if(!st||!st.attributes.access_token){$('camnote').hidden=false;
+      $('camnote').textContent='Kein Zugang zur Kamera: An diesem Bildschirm einmal bei Home Assistant anmelden.';return;}
+    $('camnote').hidden=true;$('camimg').src='/api/camera_proxy_stream/'+CAM+'?token='+st.attributes.access_token+'&t='+Date.now();};
+  bild();clearInterval(camTimer);camTimer=setInterval(bild,240000);}
+function openPanel(kind){panelKind=kind;codeOk=false;
+  $('panel').classList.remove('full');$('panel').hidden=false;document.documentElement.classList.add('split');
+  $('ptitle').textContent=kind==='shop'?'Fischgärtnerei – Hofladen':'Kamera Aquakultur';
+  if(kind==='shop')$('pbody').innerHTML='<iframe id="shopfr" title="Fischgärtnerei" src="https://www.fischgaertnerei.at/"></iframe>';
+  else camStart();
+  arm();}
+function closePanel(){clearInterval(camTimer);document.documentElement.classList.remove('split');$('panel').hidden=true;$('pbody').textContent='';panelKind=null;$('code').hidden=true;arm();}
+function askCode(dann){codeThen=dann;codeBuf='';$('cdots').textContent='';$('code').hidden=false;}
+function codeKey(z){if(z==='x'){$('code').hidden=true;return;}
+  codeBuf=(codeBuf+z).slice(-8);$('cdots').textContent='•'.repeat(codeBuf.length);
+  if(codeBuf.slice(-CODE.length)===CODE){$('code').hidden=true;codeBuf='';if(codeThen)codeThen();}}
+(()=>{const pad=$('cpad');'123456789'.split('').concat(['','0','']).forEach(z=>{
+  if(!z){pad.appendChild(document.createElement('span'));return;}
+  const b=document.createElement('button');b.type='button';b.textContent=z;b.onclick=()=>codeKey(z);pad.appendChild(b);});
+  const ab=document.createElement('button');ab.type='button';ab.className='wide';ab.textContent='Abbrechen';ab.onclick=()=>codeKey('x');pad.appendChild(ab);})();
+$('bshop').onclick=()=>openPanel('shop');
+$('bcam').onclick=()=>openPanel('cam');
+$('pclose').onclick=closePanel;
+$('pfull').onclick=()=>{if(codeOk){$('panel').classList.toggle('full');return;}
+  askCode(()=>{codeOk=true;$('panel').classList.add('full');});};
 // Läuft die Seite von einem Server im eigenen Netz (z. B. Home Assistant), versorgt sie sich aus ihrem Ordner selbst
 if(/^https?:$/.test(location.protocol)){
   // 1) Bibliotheken neben der Datei: three.min.js und OrbitControls.js – dann braucht das Spiel kein Internet
