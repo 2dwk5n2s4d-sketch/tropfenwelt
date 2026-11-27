@@ -87,7 +87,8 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 /* Spielfläche */
 #stage{position:fixed;inset:0;display:flex;justify-content:center;gap:3px;
   background:radial-gradient(120% 90% at 50% 0%,#1f7fb3 0%,var(--water) 38%,var(--deep) 100%)}
-.pane{position:relative;flex:1 1 0;min-width:0;max-width:50%;height:100%}
+.pane{position:relative;flex:1 1 0;min-width:0;height:100%}
+#stage.multi .pane{max-width:50%}                                        /* allein: ganzer Schirm, zu mehreren: hoechstens die Haelfte */
 .pane iframe{width:100%;height:100%;border:0;display:block;background:var(--water)}
 .pend{position:absolute;z-index:4;left:50%;bottom:calc(6px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
   border:0;border-radius:999px;padding:.35em 1.1em;background:rgba(6,32,47,.55);color:#fff;font:600 clamp(12px,1.5vmin,30px) var(--text);cursor:pointer}
@@ -184,7 +185,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
     <button class="back" id="back">Zurück</button>
   </div>
 </div>
-<div id="ver" aria-hidden="true">Stand 27.11. 13:23</div>
+<div id="ver" aria-hidden="true">Stand 27.11. 13:29</div>
 <div id="extras" hidden>
   <button id="bshop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h-2l-1 2H2v2h2l3 8h10l3-8h2V6h-2l-1-2h-2l-1 2H8L7 4Zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>Hofladen &amp; Bestellen</button>
   <button id="bcam" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>Kamera Aquakultur</button>
@@ -241,7 +242,7 @@ function gameDoc(n,i,nm){if(!GAME)GAME=new TextDecoder().decode(Uint8Array.from(
   if(three.length>1000&&orbit.length>20){                                   // Offline-Fassung: Bibliotheken aus dieser Datei, keine Netz-Schriften
     h=h.replace(/<script id="lib-three"[^>]*><\/script>/,()=>'<script id="lib-three">'+three+'\n</scr'+'ipt>').replace(/<script id="lib-orbit"[^>]*><\/script>/,()=>'<script id="lib-orbit">'+orbit+'\n</scr'+'ipt>').replace(/<link[^>]*fonts\.g[^>]*>\s*/g,'');}
   return h.replace('<head>',()=>'<head><script>window.__KIOSK={n:'+n+',i:'+i+',name:'+JSON.stringify(nm||'')+'};</scr'+'ipt>');}
-function start(n,nm){want=n;ready=0;show('play');$('load').hidden=false;const st=$('stage');
+function start(n,nm){want=n;ready=0;show('play');$('load').hidden=false;const st=$('stage');st.classList.toggle('multi',n>1);
   for(let i=0;i<n;i++){const d=document.createElement('div');d.className='pane';
     const f=document.createElement('iframe');f.title='Spieler '+(i+1);f.setAttribute('allow','autoplay');f.dataset.idx=i;f.srcdoc=gameDoc(n,i,(nm||[])[i]);
     const b=document.createElement('button');b.className='pend';b.type='button';b.textContent=(nm&&nm[i]?nm[i]+': ':'')+'Ende';b.onclick=()=>{endePane=d;$('confirm').hidden=false;arm();};
