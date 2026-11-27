@@ -184,7 +184,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
     <button class="back" id="back">Zurück</button>
   </div>
 </div>
-<div id="ver" aria-hidden="true">Stand 27.11. 10:26</div>
+<div id="ver" aria-hidden="true">Stand 27.11. 11:45</div>
 <div id="extras" hidden>
   <button id="bshop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h-2l-1 2H2v2h2l3 8h10l3-8h2V6h-2l-1-2h-2l-1 2H8L7 4Zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>Hofladen &amp; Bestellen</button>
   <button id="bcam" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>Kamera Aquakultur</button>
@@ -345,9 +345,14 @@ function camStart(){const body=$('pbody');
     const v=document.createElement('video');v.id='camvid';v.autoplay=true;v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');
     const img=$('camimg');if(!img)return;img.replaceWith(v);
     try{camHls&&camHls.destroy();}catch(_){}
-    camHls=new window.Hls({liveSyncDurationCount:2,maxBufferLength:6});camHls.loadSource(u);camHls.attachMedia(v);
-    camHls.on(window.Hls.Events.ERROR,(_e,d)=>{if(d&&d.fatal){try{camHls.destroy();}catch(_){}camHls=null;
-      const ni=document.createElement('img');ni.id='camimg';ni.alt='Kamerabild Aquakultur';v.replaceWith(ni);bild();}});
+    camHls=new window.Hls({liveSyncDurationCount:3,maxBufferLength:10});camHls.loadSource(u);camHls.attachMedia(v);
+    let rettung=0;
+    camHls.on(window.Hls.Events.ERROR,(_e,d)=>{if(!d||!d.fatal)return;
+      if(rettung<4){rettung++;                                                     // kleine Aussetzer abfangen, statt gleich aufzugeben
+        if(d.type===window.Hls.ErrorTypes.NETWORK_ERROR){try{camHls.startLoad();return;}catch(_){}}
+        else if(d.type===window.Hls.ErrorTypes.MEDIA_ERROR){try{camHls.recoverMediaError();return;}catch(_){}}}
+      try{camHls.destroy();}catch(_){}camHls=null;                                  // es geht wirklich nicht: zurueck zu den Einzelbildern
+      const ni=document.createElement('img');ni.id='camimg';ni.alt='Kamerabild Aquakultur';v.replaceWith(ni);bild();});
     clearInterval(camTimer);camTimer=setInterval(()=>{},600000);});}
 function openPanel(kind){panelKind=kind;codeOk=false;
   $('panel').classList.remove('full');$('panel').hidden=false;document.documentElement.classList.add('split');
