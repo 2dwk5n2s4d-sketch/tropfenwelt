@@ -103,10 +103,13 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 #panel header button.x{background:var(--drop);color:var(--ink)}
 #panel .body{flex:1;position:relative;background:#000;overflow:hidden}
 #panel iframe{width:100%;height:100%;border:0;background:#fff}
-#camimg{width:100%;height:100%;object-fit:contain;background:#000}
-#camnote{position:absolute;inset:auto 0 0 0;padding:.6em;text-align:center;font-size:clamp(13px,1.7vmin,30px);background:rgba(6,39,61,.85);color:#d6edf7}
-#camctl{position:absolute;right:clamp(8px,1.4vmin,24px);bottom:clamp(8px,1.4vmin,24px);display:grid;grid-template-columns:repeat(3,auto);gap:clamp(5px,.8vmin,14px);align-items:center;justify-items:center}
-#camctl button{width:clamp(44px,7vmin,110px);height:clamp(44px,7vmin,110px);border:0;border-radius:50%;background:rgba(10,42,63,.72);color:#fff;font:700 clamp(17px,2.6vmin,46px)/1 var(--text);cursor:pointer;touch-action:none}
+#cam{position:absolute;inset:0;display:flex;flex-direction:column;background:#06273d}
+#camimg{width:100%;flex:0 0 auto;aspect-ratio:16/9;object-fit:contain;background:#000}
+#camrest{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2vh,34px);padding:clamp(8px,2vh,30px)}
+#camtxt{margin:0;text-align:center;font-size:clamp(14px,1.9vmin,38px);color:#d6edf7;max-width:28em}
+#camnote{position:absolute;inset:auto 0 50% 0;padding:.6em;text-align:center;font-size:clamp(13px,1.7vmin,30px);background:rgba(6,39,61,.85);color:#d6edf7}
+#camctl{display:grid;grid-template-columns:repeat(3,auto);gap:clamp(8px,1.4vmin,26px);align-items:center;justify-items:center}
+#camctl button{width:clamp(54px,9vmin,150px);height:clamp(54px,9vmin,150px);border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;font:700 clamp(20px,3.2vmin,60px)/1 var(--text);cursor:pointer;touch-action:none}
 #camctl button:active{background:var(--drop);color:var(--ink)}
 #camctl .z{border-radius:clamp(10px,1.4vmin,22px)}
 #code{position:fixed;z-index:8;inset:0;display:grid;place-items:center;background:rgba(3,20,32,.82)}
@@ -151,7 +154,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
     <button class="back" id="back">Zurück</button>
   </div>
 </div>
-<div id="ver" aria-hidden="true">Stand 26.11. 23:15</div>
+<div id="ver" aria-hidden="true">Stand 27.11. 08:57</div>
 <div id="extras" hidden>
   <button id="bshop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h-2l-1 2H2v2h2l3 8h10l3-8h2V6h-2l-1-2h-2l-1 2H8L7 4Zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>Hofladen &amp; Bestellen</button>
   <button id="bcam" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>Kamera Aquakultur</button>
@@ -232,7 +235,9 @@ function camCtl(){const b=(t,id,cls)=>'<button type="button" id="'+id+'" class="
     +b('◀','cleft')+b('＋','czin','z')+b('▶','cright')
     +'<span></span>'+b('▼','cdown')+b('－','czout','z')+'</div>';}
 function camStart(){const body=$('pbody');
-  body.innerHTML='<img id="camimg" alt="Kamerabild Aquakultur">'+camCtl()+'<div id="camnote" hidden></div>';
+  body.innerHTML='<div id="cam"><img id="camimg" alt="Kamerabild Aquakultur">'
+    +'<div id="camrest">'+camCtl()+'<p id="camtxt">Pfeile gedrückt halten dreht die Kamera, ＋ und － zoomen.</p></div></div>'
+    +'<div id="camnote" hidden></div>';
   const halt=()=>ha('/api/services/button/press',{entity_id:PTZ+'stop'});
   const dreh=(id,r)=>{const el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();ha('/api/services/button/press',{entity_id:PTZ+r});});
     ['pointerup','pointerleave','pointercancel'].forEach(ev=>el.addEventListener(ev,halt));};
