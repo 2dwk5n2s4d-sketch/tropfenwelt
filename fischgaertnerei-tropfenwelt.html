@@ -103,7 +103,10 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 #extras button{display:inline-flex;align-items:center;gap:.5em;border:0;border-radius:999px;padding:.55em 1.3em;font:600 clamp(14px,2vmin,34px) var(--text);background:rgba(255,255,255,.16);color:var(--foam);cursor:pointer}
 #extras button:active{transform:translateY(.3vmin)}
 #extras svg{height:1.2em;width:auto;fill:currentColor}
-#panel{position:fixed;z-index:6;inset:0 50% 0 0;display:flex;flex-direction:column;background:#06273d;box-shadow:0 0 4vmin rgba(0,0,0,.55);border:clamp(5px,.9vmin,20px) solid var(--water);border-radius:clamp(8px,1.2vmin,26px);overflow:hidden}
+#panel{position:fixed;z-index:6;inset:0 50% 0 0;display:flex;flex-direction:column;padding:clamp(6px,1.1vmin,24px);
+  background:radial-gradient(120% 90% at 50% 0%,#1f7fb3 0%,var(--water) 38%,var(--deep) 100%);box-shadow:0 0 4vmin rgba(0,0,0,.55)}
+#panel>header{border-radius:clamp(8px,1.2vmin,22px) clamp(8px,1.2vmin,22px) 0 0}
+#panel>.body{border-radius:0 0 clamp(8px,1.2vmin,22px) clamp(8px,1.2vmin,22px)}
 
 #panel.full{inset:0}
 /* bei offenem Panel rueckt das Standbild auf die andere Haelfte */
@@ -126,7 +129,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
 #web{position:absolute;inset:0;overflow:hidden;background:#fff}
 #web iframe{width:143%;height:143%;transform:scale(.7);transform-origin:top left}
 #cam{position:absolute;inset:0;display:flex;flex-direction:column;background:#06273d}
-#camimg{width:100%;flex:0 0 auto;aspect-ratio:16/9;object-fit:contain;background:#000}
+#camimg,#camvid{width:100%;flex:0 0 auto;aspect-ratio:16/9;object-fit:contain;background:#000}
 #camrest{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2vh,34px);padding:clamp(8px,2vh,30px)}
 #camtxt{margin:0;text-align:center;font-size:clamp(14px,1.9vmin,38px);color:#d6edf7;max-width:28em}
 #camnote{position:absolute;inset:auto 0 50% 0;padding:.6em;text-align:center;font-size:clamp(13px,1.7vmin,30px);background:rgba(6,39,61,.85);color:#d6edf7}
@@ -176,7 +179,7 @@ body{background:var(--deep);color:var(--foam);font-family:var(--text);overflow:h
     <button class="back" id="back">Zurück</button>
   </div>
 </div>
-<div id="ver" aria-hidden="true">Stand 27.11. 09:30</div>
+<div id="ver" aria-hidden="true">Stand 27.11. 09:37</div>
 <div id="extras" hidden>
   <button id="bshop" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h-2l-1 2H2v2h2l3 8h10l3-8h2V6h-2l-1-2h-2l-1 2H8L7 4Zm0 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm10 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z"/></svg>Hofladen &amp; Bestellen</button>
   <button id="bcam" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h3l2-2h6l2 2h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2Zm8 3a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 2.2a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6Z"/></svg>Kamera Aquakultur</button>
@@ -278,7 +281,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&state!=='
 show('idle');
 // ---- Hofladen und Kamera -------------------------------------------------
 const CAM='camera.aquakultur_zoom_clear',PTZ='button.aquakultur_zoom_ptz_',ZOOM='number.aquakultur_zoom_zoom',CODE='6693';
-let panelKind=null,camTimer=0,codeOk=false,codeBuf='',codeThen=null;
+let panelKind=null,camTimer=0,camHls=null,codeOk=false,codeBuf='',codeThen=null;
 function haTokens(){try{return JSON.parse(localStorage.getItem('hassTokens')||'null');}catch(e){return null;}}
 async function haToken(){const t=haTokens();if(!t)return null;
   if(t.expires&&t.expires>Date.now()+30000)return t.access_token;
@@ -293,6 +296,19 @@ function camCtl(){const b=(t,id,cls)=>'<button type="button" id="'+id+'" class="
   return '<div id="camctl">'+'<span></span>'+b('▲','cup')+'<span></span>'
     +b('◀','cleft')+b('＋','czin','z')+b('▶','cright')
     +'<span></span>'+b('▼','cdown')+b('－','czout','z')+'</div>';}
+async function camUrlHls(){                                        // HLS: Home Assistant reicht den Originalstrom durch, das ruckelt nicht
+  if(!window.Hls){await new Promise(r=>{const sc=document.createElement('script');sc.src='hls.min.js';sc.onload=r;sc.onerror=r;document.head.appendChild(sc);});}
+  if(!window.Hls||!window.Hls.isSupported())return null;
+  const tk=await haToken();if(!tk)return null;
+  return await new Promise(res=>{let ws;const fertig=u=>{try{ws&&ws.close();}catch(_){}res(u);};
+    try{ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/api/websocket');}catch(e){return res(null);}
+    const t=setTimeout(()=>fertig(null),9000);
+    ws.onerror=()=>{clearTimeout(t);fertig(null);};
+    ws.onmessage=ev=>{let m;try{m=JSON.parse(ev.data);}catch(_){return;}
+      if(m.type==='auth_required')ws.send(JSON.stringify({type:'auth',access_token:tk}));
+      else if(m.type==='auth_ok')ws.send(JSON.stringify({id:1,type:'camera/stream',entity_id:CAM,format:'hls'}));
+      else if(m.type==='auth_invalid'){clearTimeout(t);fertig(null);}
+      else if(m.id===1){clearTimeout(t);fertig(m.success&&m.result&&m.result.url||null);}};});}
 function camStart(){const body=$('pbody');
   body.innerHTML='<div id="cam"><img id="camimg" alt="Kamerabild Aquakultur">'
     +'<div id="camrest">'+camCtl()+'<p id="camtxt">Pfeile gedrückt halten dreht die Kamera, ＋ und － zoomen.</p></div></div>'
@@ -309,14 +325,22 @@ function camStart(){const body=$('pbody');
     if(!st||!st.attributes.access_token){$('camnote').hidden=false;
       $('camnote').textContent='Kein Zugang zur Kamera: An diesem Bildschirm einmal bei Home Assistant anmelden.';return;}
     $('camnote').hidden=true;$('camimg').src='/api/camera_proxy_stream/'+CAM+'?token='+st.attributes.access_token+'&t='+Date.now();};
-  bild();clearInterval(camTimer);camTimer=setInterval(bild,240000);}
+  bild();clearInterval(camTimer);camTimer=setInterval(bild,240000);
+  camUrlHls().then(u=>{if(!u||panelKind!=='cam')return;                                  // gelingt der Videostrom, loest er die Einzelbilder ab
+    const v=document.createElement('video');v.id='camvid';v.autoplay=true;v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');
+    const img=$('camimg');if(!img)return;img.replaceWith(v);
+    try{camHls&&camHls.destroy();}catch(_){}
+    camHls=new window.Hls({liveSyncDurationCount:2,maxBufferLength:6});camHls.loadSource(u);camHls.attachMedia(v);
+    camHls.on(window.Hls.Events.ERROR,(_e,d)=>{if(d&&d.fatal){try{camHls.destroy();}catch(_){}camHls=null;
+      const ni=document.createElement('img');ni.id='camimg';ni.alt='Kamerabild Aquakultur';v.replaceWith(ni);bild();}});
+    clearInterval(camTimer);camTimer=setInterval(()=>{},600000);});}
 function openPanel(kind){panelKind=kind;codeOk=false;
   $('panel').classList.remove('full');$('panel').hidden=false;document.documentElement.classList.add('split');
   $('ptitle').textContent=kind==='shop'?'Fischgärtnerei – Hofladen':'Kamera Aquakultur';
   if(kind==='shop')$('pbody').innerHTML='<div id="web"><iframe id="shopfr" title="Fischgärtnerei" src="https://www.fischgaertnerei.at/uber-uns"></iframe></div>';
   else camStart();
   arm();}
-function closePanel(){clearInterval(camTimer);document.documentElement.classList.remove('split');if($('count'))buildCount();$('panel').hidden=true;$('pbody').textContent='';panelKind=null;$('code').hidden=true;arm();}
+function closePanel(){clearInterval(camTimer);try{camHls&&camHls.destroy();}catch(_){}camHls=null;document.documentElement.classList.remove('split');if($('count'))buildCount();$('panel').hidden=true;$('pbody').textContent='';panelKind=null;$('code').hidden=true;arm();}
 function askCode(dann){codeThen=dann;codeBuf='';$('cdots').textContent='';$('code').hidden=false;}
 function codeKey(z){if(z==='x'){$('code').hidden=true;return;}
   codeBuf=(codeBuf+z).slice(-8);$('cdots').textContent='•'.repeat(codeBuf.length);

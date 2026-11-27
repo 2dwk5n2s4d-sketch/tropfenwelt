@@ -8,6 +8,7 @@ UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.3
 LIBS = {
     "three.min.js": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js",
     "OrbitControls.js": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js",
+    "hls.min.js": "https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.5.17/hls.min.js",
 }
 CSS = ("https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700"
        "&family=Playfair+Display:wght@700&display=swap")
